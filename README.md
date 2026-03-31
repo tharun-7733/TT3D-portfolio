@@ -6,7 +6,7 @@ A jaw-dropping developer portfolio packed with interactive 3D animations, butter
 
 [![Deploy with Vercel](https://vercel.com/button)](https://www.tharunportfolio.me/)
 
-![Portfolio Preview](https://github.com/tharun-7733/Portfolio/blob/main/public/assets/projects-screenshots/portfolio/landing.png?raw=true)
+![Portfolio Preview](https://github.com/tharun-7733/TT3D-portfolio/blob/main/public/assets/projects-screenshots/portfolio/landing.png?raw=true)
 
 ## ✨ Features
 
