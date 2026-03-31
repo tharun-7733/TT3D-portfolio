@@ -3,12 +3,19 @@
 "version": "0.1.0",
 "private": true,
 "homepage": "https://tharunportfolio.me",
-"scripts": {
-  "dev": "next dev",
-  "build": "next build",
-  "predeploy": "npm run build",
-  "deploy": "gh-pages -d out"
-},
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  output: 'export',
+  images: {
+    unoptimized: true
+  },
+  trailingSlash: true,
+  eslint: {
+    ignoreDuringBuilds: true
+  }
+}
+
+module.exports = nextConfig
 "dependencies": {
 "@gsap/react": "^2.1.1",
 "@radix-ui/react-dialog": "^1.1.1",
