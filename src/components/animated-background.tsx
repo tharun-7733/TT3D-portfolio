@@ -144,7 +144,8 @@ const AnimatedBackground = () => {
     // Section transitions
     createSectionTimeline("#skills", "skills", "hero");
     createSectionTimeline("#projects", "projects", "skills", "top 70%");
-    createSectionTimeline("#achievements", "achievements", "projects", "top 45%");
+    createSectionTimeline("#certifications", "certifications", "projects", "top 45%");
+    createSectionTimeline("#achievements", "achievements", "certifications", "top 45%");
     createSectionTimeline("#contact", "contact", "achievements", "top 30%");
   };
 

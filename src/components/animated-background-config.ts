@@ -1,4 +1,4 @@
-export type Section = "hero" | "about" | "skills" | "experience" | "projects" | "achievements" | "contact";
+export type Section = "hero" | "about" | "skills" | "experience" | "projects" | "certifications" | "achievements" | "contact";
 
 export const STATES = {
   hero: {
@@ -89,6 +89,26 @@ export const STATES = {
       rotation: {
         x: Math.PI,
         y: Math.PI / 3,
+        z: Math.PI,
+      },
+    },
+  },
+  certifications: {
+    desktop: {
+      scale: { x: 0.25, y: 0.25, z: 0.25 },
+      position: { x: 0, y: -25, z: 0 },
+      rotation: {
+        x: Math.PI,
+        y: Math.PI / 2.8,
+        z: Math.PI,
+      },
+    },
+    mobile: {
+      scale: { x: 0.3, y: 0.3, z: 0.3 },
+      position: { x: 0, y: 150, z: 0 },
+      rotation: {
+        x: Math.PI,
+        y: Math.PI / 2.8,
         z: Math.PI,
       },
     },
