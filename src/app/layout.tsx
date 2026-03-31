@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Inter, Archivo_Black } from "next/font/google";
 import "./globals.css";
 import { config } from "@/data/config";
 
@@ -40,24 +39,13 @@ export const metadata: Metadata = {
   },
 };
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
-
-const archivoBlack = Archivo_Black({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-display",
-});
-
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={[inter.variable, archivoBlack.variable, "font-display"].join(" ")} suppressHydrationWarning>
+    <html lang="en" className="font-display" suppressHydrationWarning>
       <head>
         <Script
           defer
