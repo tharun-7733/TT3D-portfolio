@@ -26,7 +26,7 @@ const config = {
 
   // for github stars button
   githubUsername: "tharun-7733",
-  githubRepo: "T3D-Portfolio",
+  githubRepo: "TT3D-portfolio",
 
   get ogImg() {
     return this.site + "/assets/seo/og-image.png";
