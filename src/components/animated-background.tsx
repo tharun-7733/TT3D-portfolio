@@ -15,13 +15,92 @@ import { useSounds } from "./realtime/hooks/use-sounds";
 
 gsap.registerPlugin(ScrollTrigger);
 
+const formatSkillLabel = (name: string) => {
+  const normalized = name.trim();
+  const acronymMap: Record<string, string> = {
+    cpp: "CPP",
+    c: "C",
+    xml: "XML",
+    css: "CSS",
+    html: "HTML",
+    aws: "AWS",
+    git: "Git",
+    github: "GitHub",
+    mysql: "MySQL",
+    numpy: "NumPy",
+    pandas: "Pandas",
+  };
+
+  if (acronymMap[normalized.toLowerCase()]) {
+    return acronymMap[normalized.toLowerCase()];
+  }
+
+  return normalized
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
+const IGNORED_SCENE_NAMES = new Set([
+  "keyboard",
+  "keycap",
+  "keycap-desktop",
+  "keycap-mobile",
+  "legend",
+  "rectangle",
+  "cube",
+  "text",
+  "pointlight",
+  "point light",
+  "directionallight",
+  "directional light",
+  "camera",
+  "camera 2",
+  "camera2",
+]);
+
+const isDisplayableSkillName = (name?: string) => {
+  if (!name) return false;
+
+  const normalized = name.trim().toLowerCase();
+  if (!normalized || IGNORED_SCENE_NAMES.has(normalized)) return false;
+  if (normalized.startsWith("row ")) return false;
+  if (/^row[-_\s]?\d+$/.test(normalized)) return false;
+  if (normalized.startsWith("text-")) return false;
+  if (normalized.startsWith("frame-")) return false;
+
+  return true;
+};
+
+const resolveSkillTargetName = (app: Application, target: SplineEvent["target"]) => {
+  const directName = target.name?.trim();
+  if (isDisplayableSkillName(directName)) {
+    return directName;
+  }
+
+  const sceneObject = app.findObjectById(target.id) as (SPEObject & {
+    parent?: SPEObject | null;
+    _parent?: SPEObject | null;
+  }) | undefined;
+
+  let current = sceneObject;
+  while (current) {
+    if (isDisplayableSkillName(current.name)) {
+      return current.name;
+    }
+
+    current = (current.parent ?? current._parent) as typeof current;
+  }
+
+  return directName && !IGNORED_SCENE_NAMES.has(directName.toLowerCase()) ? directName : null;
+};
+
 const AnimatedBackground = () => {
   const { isLoading, bypassLoading } = usePreloader();
   const { theme } = useTheme();
   const isMobile = useMediaQuery("(max-width: 767px)");
   const splineContainer = useRef<HTMLDivElement>(null);
   const [splineApp, setSplineApp] = useState<Application>();
-  const selectedSkillRef = useRef<Skill | null>(null);
+  const selectedSkillRef = useRef<{ name: string } | null>(null);
 
   const { playPressSound, playReleaseSound } = useSounds();
 
@@ -38,9 +117,12 @@ const AnimatedBackground = () => {
   // --- Event Handlers ---
 
   const handleMouseHover = (e: SplineEvent) => {
-    if (!splineApp || selectedSkillRef.current?.name === e.target.name) return;
+    if (!splineApp) return;
 
-    if (e.target.name === "body" || e.target.name === "platform") {
+    const targetName = resolveSkillTargetName(splineApp, e.target);
+    if (!targetName || selectedSkillRef.current?.name === targetName) return;
+
+    if (targetName === "body" || targetName === "platform") {
       if (selectedSkillRef.current) playReleaseSound();
       setSelectedSkill(null);
       selectedSkillRef.current = null;
@@ -49,13 +131,18 @@ const AnimatedBackground = () => {
         splineApp.setVariable("desc", "");
       }
     } else {
-      if (!selectedSkillRef.current || selectedSkillRef.current.name !== e.target.name) {
-        const skill = SKILLS[e.target.name as SkillNames];
+      if (!selectedSkillRef.current || selectedSkillRef.current.name !== targetName) {
+        const skill = SKILLS[targetName as SkillNames];
+        if (selectedSkillRef.current) playReleaseSound();
+        playPressSound();
+        selectedSkillRef.current = { name: targetName };
+
         if (skill) {
-          if (selectedSkillRef.current) playReleaseSound();
-          playPressSound();
           setSelectedSkill(skill);
-          selectedSkillRef.current = skill;
+        } else {
+          setSelectedSkill(null);
+          splineApp.setVariable("heading", formatSkillLabel(targetName));
+          splineApp.setVariable("desc", formatSkillLabel(targetName));
         }
       }
     }
@@ -77,18 +164,29 @@ const AnimatedBackground = () => {
     splineApp.addEventListener("keyUp", () => {
       if (!splineApp || isInputFocused()) return;
       playReleaseSound();
+      setSelectedSkill(null);
+      selectedSkillRef.current = null;
       splineApp.setVariable("heading", "");
       splineApp.setVariable("desc", "");
     });
     splineApp.addEventListener("keyDown", (e) => {
       if (!splineApp || isInputFocused()) return;
-      const skill = SKILLS[e.target.name as SkillNames];
+      const targetName = resolveSkillTargetName(splineApp, e.target);
+      if (!targetName) return;
+
+      const skill = SKILLS[targetName as SkillNames];
       if (skill) {
         playPressSound();
         setSelectedSkill(skill);
-        selectedSkillRef.current = skill;
+        selectedSkillRef.current = { name: targetName };
         splineApp.setVariable("heading", skill.label);
-        splineApp.setVariable("desc", skill.shortDescription);
+        splineApp.setVariable("desc", skill.label);
+      } else {
+        playPressSound();
+        setSelectedSkill(null);
+        selectedSkillRef.current = { name: targetName };
+        splineApp.setVariable("heading", formatSkillLabel(targetName));
+        splineApp.setVariable("desc", formatSkillLabel(targetName));
       }
     });
     splineApp.addEventListener("mouseHover", handleMouseHover);
@@ -331,7 +429,7 @@ const AnimatedBackground = () => {
     if (!selectedSkill || !splineApp) return;
     // console.log(selectedSkill)
     splineApp.setVariable("heading", selectedSkill.label);
-    splineApp.setVariable("desc", selectedSkill.shortDescription);
+    splineApp.setVariable("desc", selectedSkill.label);
   }, [selectedSkill]);
 
   // Handle rotation and teardown animations based on active section
@@ -436,7 +534,7 @@ const AnimatedBackground = () => {
           setSplineApp(app);
           bypassLoading();
         }}
-        scene="/assets/skills-keyboard.spline"
+        scene="https://prod.spline.design/8S8ACjQxnlej6GKa/scene.splinecode"
       />
     </Suspense>
   );
